@@ -150,12 +150,27 @@ activemq-data/
 # Environments
 .env
 .envrc
+.env.*
 .venv
 env/
 venv/
 ENV/
 env.bak/
 venv.bak/
+
+# macOS
+.DS_Store
+
+# Large datasets
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Model outputs
+*.pt
+*.pth
+*.ckpt
 
 # Spyder project settings
 .spyderproject
