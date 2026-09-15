@@ -171,6 +171,8 @@ data/processed/*
 *.pt
 *.pth
 *.ckpt
+artifacts/*
+!artifacts/.gitkeep
 
 # Spyder project settings
 .spyderproject
