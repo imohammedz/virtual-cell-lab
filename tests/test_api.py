@@ -18,6 +18,22 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {"status": "ok"})
 
+    def test_local_frontend_cors_preflight(self) -> None:
+        response = self.client.options(
+            "/experiments",
+            headers={
+                "Origin": "http://localhost:3000",
+                "Access-Control-Request-Method": "POST",
+                "Access-Control-Request-Headers": "content-type",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.headers["access-control-allow-origin"],
+            "http://localhost:3000",
+        )
+
     def test_cell_metadata(self) -> None:
         response = self.client.get("/cell")
 
