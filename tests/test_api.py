@@ -74,6 +74,11 @@ class ApiTests(unittest.TestCase):
             body["top_decreased_genes"][0]["gene"],
             engine_result.top_decreased_genes()[0].gene,
         )
+        increased = body["top_increased_genes"][0]
+        self.assertAlmostEqual(
+            increased["predicted_expression"] - increased["control_expression"],
+            increased["change"],
+        )
         self.assertEqual(body["metadata"]["training_perturbations"], 659)
 
     def test_unknown_perturbation_returns_not_found(self) -> None:

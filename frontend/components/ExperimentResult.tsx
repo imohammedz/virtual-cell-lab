@@ -1,3 +1,5 @@
+import { ExpressionComparison } from "@/components/ExpressionComparison";
+import { GeneChangeChart } from "@/components/GeneChangeChart";
 import { GeneChangeList } from "@/components/GeneChangeList";
 import type { ExperimentResult as ExperimentResultData } from "@/types/experiment";
 
@@ -47,6 +49,18 @@ export function ExperimentResult({ result, running }: ExperimentResultProps) {
               title="Decreased genes"
               direction="decrease"
               changes={result.top_decreased_genes}
+            />
+          </div>
+          <div className="mt-8 grid gap-8 border-b border-slate-100 pb-8 xl:grid-cols-2">
+            <GeneChangeChart
+              increased={result.top_increased_genes}
+              decreased={result.top_decreased_genes}
+            />
+            <ExpressionComparison
+              changes={[
+                ...result.top_increased_genes.slice(0, 3),
+                ...result.top_decreased_genes.slice(0, 3),
+              ]}
             />
           </div>
           <dl className="mt-7 grid gap-5 text-sm sm:grid-cols-3">

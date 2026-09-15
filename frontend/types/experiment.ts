@@ -12,6 +12,8 @@ export interface PerturbationsResponse {
 export interface GeneChange {
   gene: string;
   change: number;
+  control_expression: number;
+  predicted_expression: number;
 }
 
 export interface ModelMetadata {

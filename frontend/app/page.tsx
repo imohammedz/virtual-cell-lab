@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { CellSummary } from "@/components/CellSummary";
 import { ExperimentForm } from "@/components/ExperimentForm";
 import { ExperimentResult } from "@/components/ExperimentResult";
+import { EvaluationSummary } from "@/components/EvaluationSummary";
 import { getCell, getPerturbations, runExperiment } from "@/lib/api";
 import type {
   Cell,
@@ -101,6 +102,7 @@ export default function Home() {
 
           <ExperimentResult result={result} running={running} />
         </div>
+        <EvaluationSummary />
       </div>
     </main>
   );

@@ -11,6 +11,7 @@ from .schemas import (
     PerturbationsResponse,
 )
 from .services import VirtualCellService, get_virtual_cell_service
+from src.virtual_cell.result import GeneChange
 
 
 app = FastAPI(
@@ -69,15 +70,27 @@ def create_experiment(
             detail=str(error),
         ) from error
 
+    gene_indices = {gene: index for index, gene in enumerate(result.genes)}
+
+    def serialize_change(change: GeneChange) -> GeneChangeResponse:
+        gene = change.gene
+        index = gene_indices[gene]
+        return GeneChangeResponse(
+            gene=gene,
+            change=change.change,
+            control_expression=float(service.cell.control_state[index]),
+            predicted_expression=float(result.predicted_state[index]),
+        )
+
     return ExperimentResponse(
         cell_type=result.cell_type,
         perturbation=result.perturbation,
         top_increased_genes=[
-            GeneChangeResponse(gene=change.gene, change=change.change)
+            serialize_change(change)
             for change in result.top_increased_genes()
         ],
         top_decreased_genes=[
-            GeneChangeResponse(gene=change.gene, change=change.change)
+            serialize_change(change)
             for change in result.top_decreased_genes()
         ],
         metadata=ModelMetadataResponse(

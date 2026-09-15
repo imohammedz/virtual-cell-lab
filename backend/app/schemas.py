@@ -23,6 +23,8 @@ class ExperimentRequest(BaseModel):
 class GeneChangeResponse(BaseModel):
     gene: str
     change: float
+    control_expression: float
+    predicted_expression: float
 
 
 class ModelMetadataResponse(BaseModel):
