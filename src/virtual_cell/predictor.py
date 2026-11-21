@@ -20,17 +20,25 @@ class PerturbationPredictor:
         context_features: NDArray[np.float64],
         genes: list[str],
         control_state: NDArray[np.float64],
+        average_effect: NDArray[np.float64],
     ) -> None:
         features = np.asarray(context_features, dtype=np.float64)
         state = np.asarray(control_state, dtype=np.float64).reshape(-1)
+        average = np.asarray(average_effect, dtype=np.float64).reshape(-1)
 
         if features.shape[0] != len(perturbations):
             raise ValueError("context feature rows must match perturbations")
         if state.size != len(genes):
             raise ValueError("control state must match genes")
+        if average.size != len(genes):
+            raise ValueError("average effect must match genes")
         if len(set(perturbations)) != len(perturbations):
             raise ValueError("perturbations must be unique")
-        if not np.isfinite(features).all() or not np.isfinite(state).all():
+        if (
+            not np.isfinite(features).all()
+            or not np.isfinite(state).all()
+            or not np.isfinite(average).all()
+        ):
             raise ValueError("artifact arrays must contain only finite values")
 
         self._model = model
@@ -41,6 +49,7 @@ class PerturbationPredictor:
         }
         self.genes = tuple(genes)
         self.control_state = state
+        self.average_effect = average
 
     @classmethod
     def load(cls, path: str | Path) -> "PerturbationPredictor":
@@ -59,6 +68,7 @@ class PerturbationPredictor:
             "context_features",
             "genes",
             "control_state",
+            "average_effect",
         }
         missing = required.difference(bundle)
         if missing:
@@ -73,6 +83,7 @@ class PerturbationPredictor:
             context_features=bundle["context_features"],
             genes=list(bundle["genes"]),
             control_state=bundle["control_state"],
+            average_effect=bundle["average_effect"],
         )
 
     @property

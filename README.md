@@ -61,7 +61,14 @@ perturbation evaluation:
 
 ## Model methodology
 
-The unseen-perturbation model:
+The unseen-perturbation comparison uses three validated prediction strategies:
+
+- **No change:** returns the canonical control state.
+- **Average training effect:** adds the mean training perturbation effect.
+- **Gene-context Ridge:** uses control-derived gene-context features and the
+  trained Ridge pipeline.
+
+The gene-context Ridge model:
 
 1. Retains perturbations with at least 100 measured cells.
 2. Retains targets present among the measured genes.
@@ -71,6 +78,12 @@ The unseen-perturbation model:
 5. Fits a 50-component PCA using training perturbation effects only.
 6. Maps gene context to reduced perturbation effects with Ridge regression.
 7. Reconstructs the predicted effect and adds it to the canonical control state.
+
+The API runs all three strategies for each experiment. The selected model
+controls the detailed charts, while the response also reports validation metrics
+and identifies the lowest-MSE model from held-out perturbations. That comparison
+is historical validation evidence, not ground truth for a live unseen
+perturbation.
 
 Held-out evaluation from notebook 05:
 
@@ -119,6 +132,10 @@ Endpoints:
 - `GET /cell`
 - `GET /perturbations`
 - `POST /experiments`
+
+`POST /experiments` accepts `{"perturbation": "TFAM", "model":
+"gene_context_ridge"}` and returns predictions for all three models, including
+ranked gene changes and validation metadata.
 
 ## Run the frontend
 

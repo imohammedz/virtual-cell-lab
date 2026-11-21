@@ -66,20 +66,26 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(body["cell_type"], "RPE1")
         self.assertEqual(body["perturbation"], "TFAM")
+        ridge = next(
+            prediction
+            for prediction in body["predictions"]
+            if prediction["model"] == "gene_context_ridge"
+        )
         self.assertEqual(
-            body["top_increased_genes"][0]["gene"],
+            ridge["top_increased_genes"][0]["gene"],
             engine_result.top_increased_genes()[0].gene,
         )
         self.assertEqual(
-            body["top_decreased_genes"][0]["gene"],
+            ridge["top_decreased_genes"][0]["gene"],
             engine_result.top_decreased_genes()[0].gene,
         )
-        increased = body["top_increased_genes"][0]
+        increased = ridge["top_increased_genes"][0]
         self.assertAlmostEqual(
             increased["predicted_expression"] - increased["control_expression"],
             increased["change"],
         )
-        self.assertEqual(body["metadata"]["training_perturbations"], 659)
+        self.assertEqual(len(body["predictions"]), 3)
+        self.assertEqual(body["closest_model"], "gene_context_ridge")
 
     def test_unknown_perturbation_returns_not_found(self) -> None:
         response = self.client.post(

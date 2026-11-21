@@ -21,12 +21,24 @@ export interface ModelMetadata {
   data_type: string;
   prediction_mode: string;
   training_perturbations: number;
+  validation_mse: number;
+  validation_pearson: number | null;
+  improvement_vs_null_percent: number;
+}
+
+export type ModelId = "no_change" | "average_effect" | "gene_context_ridge";
+
+export interface ModelPrediction {
+  model: ModelId;
+  top_increased_genes: GeneChange[];
+  top_decreased_genes: GeneChange[];
+  metadata: ModelMetadata;
 }
 
 export interface ExperimentResult {
   cell_type: string;
   perturbation: string;
-  top_increased_genes: GeneChange[];
-  top_decreased_genes: GeneChange[];
-  metadata: ModelMetadata;
+  selected_model: ModelId;
+  closest_model: ModelId;
+  predictions: ModelPrediction[];
 }

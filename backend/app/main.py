@@ -8,9 +8,11 @@ from .schemas import (
     GeneChangeResponse,
     HealthResponse,
     ModelMetadataResponse,
+    ModelPredictionResponse,
     PerturbationsResponse,
 )
 from .services import VirtualCellService, get_virtual_cell_service
+from .services import MODEL_METRICS, MODEL_NAMES
 from src.virtual_cell.result import GeneChange
 
 
@@ -63,40 +65,57 @@ def create_experiment(
     service: VirtualCellService = Depends(get_virtual_cell_service),
 ) -> ExperimentResponse:
     try:
-        result = service.run_experiment(request.perturbation)
+        results = {
+            model: service.run_model(request.perturbation, model)
+            for model in MODEL_NAMES
+        }
     except ValueError as error:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(error),
         ) from error
 
-    gene_indices = {gene: index for index, gene in enumerate(result.genes)}
+    def serialize_prediction(model: str) -> ModelPredictionResponse:
+        result = results[model]
+        gene_indices = {gene: index for index, gene in enumerate(result.genes)}
 
-    def serialize_change(change: GeneChange) -> GeneChangeResponse:
-        gene = change.gene
-        index = gene_indices[gene]
-        return GeneChangeResponse(
-            gene=gene,
-            change=change.change,
-            control_expression=float(service.cell.control_state[index]),
-            predicted_expression=float(result.predicted_state[index]),
+        def serialize_change(change: GeneChange) -> GeneChangeResponse:
+            gene = change.gene
+            index = gene_indices[gene]
+            return GeneChangeResponse(
+                gene=gene,
+                change=change.change,
+                control_expression=float(service.cell.control_state[index]),
+                predicted_expression=float(result.predicted_state[index]),
+            )
+
+        mse, pearson = MODEL_METRICS[model]
+        return ModelPredictionResponse(
+            model=model,
+            top_increased_genes=[
+                serialize_change(change) for change in result.top_increased_genes()
+            ],
+            top_decreased_genes=[
+                serialize_change(change) for change in result.top_decreased_genes()
+            ],
+            metadata=ModelMetadataResponse(
+                model=MODEL_NAMES[model],
+                data_type="scRNA-seq",
+                prediction_mode="unseen-perturbation",
+                training_perturbations=len(service.perturbations),
+                validation_mse=mse,
+                validation_pearson=pearson,
+                improvement_vs_null_percent=(MODEL_METRICS["no_change"][0] - mse)
+                / MODEL_METRICS["no_change"][0]
+                * 100,
+            ),
         )
 
+    closest_model = min(MODEL_METRICS, key=lambda model: MODEL_METRICS[model][0])
     return ExperimentResponse(
-        cell_type=result.cell_type,
-        perturbation=result.perturbation,
-        top_increased_genes=[
-            serialize_change(change)
-            for change in result.top_increased_genes()
-        ],
-        top_decreased_genes=[
-            serialize_change(change)
-            for change in result.top_decreased_genes()
-        ],
-        metadata=ModelMetadataResponse(
-            model="Ridge",
-            data_type="scRNA-seq",
-            prediction_mode="unseen-perturbation",
-            training_perturbations=len(service.perturbations),
-        ),
+        cell_type=service.cell.cell_type,
+        perturbation=request.perturbation,
+        selected_model=request.model,
+        closest_model=closest_model,
+        predictions=[serialize_prediction(model) for model in MODEL_NAMES],
     )

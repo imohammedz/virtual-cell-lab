@@ -10,6 +10,7 @@ import { getCell, getPerturbations, runExperiment } from "@/lib/api";
 import type {
   Cell,
   ExperimentResult as ExperimentResultData,
+  ModelId,
 } from "@/types/experiment";
 
 export default function Home() {
@@ -43,11 +44,11 @@ export default function Home() {
     void loadExperimentOptions();
   }, []);
 
-  async function handleRun(perturbation: string) {
+  async function handleRun(perturbation: string, model: ModelId) {
     setRunning(true);
     setError(null);
     try {
-      setResult(await runExperiment(perturbation));
+      setResult(await runExperiment(perturbation, model));
     } catch (runError) {
       setError(
         runError instanceof Error

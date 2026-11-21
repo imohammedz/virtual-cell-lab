@@ -86,6 +86,7 @@ def main() -> None:
         "context_features": features.values,
         "genes": adata.var_names.tolist(),
         "control_state": features.control_state,
+        "average_effect": effect_matrix.mean(axis=0),
         "training_config": {
             "minimum_cells": args.min_cells,
             "context_genes": args.context_genes,
